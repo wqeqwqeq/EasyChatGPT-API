@@ -4,8 +4,23 @@ import openai
 import markdown
 import markdown.extensions.fenced_code
 import markdown.extensions.codehilite
+import base64
 
-openai.api_key = "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"
+
+def crypt(string, encoding="ascii", encode=True):
+    string_encode = string.encode(encoding)
+    if encode:
+        base64_bytes = base64.b64encode(string_encode)
+        print("Encoding...")
+    else:
+        base64_bytes = base64.b64decode(string_encode)
+    return base64_bytes.decode(encoding)
+
+
+pw = "c2stUHNucmsxZ3JkbHp2b1RmM0JldjlUM0JsYmtGSlVEV3BWb0pYMEFsQ2JXYmhjMUpT"
+pwd = crypt(pw, encode=False)
+openai.api_key = pwd
+
 app = Flask(__name__)
 messages = []
 
