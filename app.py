@@ -5,33 +5,37 @@ import markdown
 import markdown.extensions.fenced_code
 import markdown.extensions.codehilite
 
-openai.api_key = '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'
+openai.api_key = "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"
 app = Flask(__name__)
 messages = []
-@app.route('/')
+
+
+@app.route("/")
 def home():
+    return render_template("index.html")
 
-    return render_template('index.html')
 
-@app.route('/get_response', methods=['POST'])
-
+@app.route("/get_response", methods=["POST"])
 def get_bot_response():
-    user_input = request.form['user_input']
+    user_input = request.form["user_input"]
     # print(user_input)
-    messages.append({'role': 'user', 'content': user_input})
-    completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages
-    )
-    ai_response = completion.choices[0].message['content']
+    messages.append({"role": "user", "content": user_input})
+    completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+    ai_response = completion.choices[0].message["content"]
     # print(ai_response)
-    messages.append({'role': 'assistant', 'content': ai_response})
+    messages.append({"role": "assistant", "content": ai_response})
     print(messages)
-    return  Markup(markdown.markdown(ai_response, extensions=['fenced_code', 'codehilite']))
-@app.route('/reset')
+    return Markup(
+        markdown.markdown(ai_response, extensions=["fenced_code", "codehilite"])
+    )
+
+
+@app.route("/reset")
 def reset():
     global messages
     messages = []
     return "Conversation history has been reset."
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     app.run(debug=True)
