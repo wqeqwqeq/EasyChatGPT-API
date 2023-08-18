@@ -5,7 +5,7 @@ import markdown
 import markdown.extensions.fenced_code
 import markdown.extensions.codehilite
 
-openai.api_key = "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"
+openai.api_key = "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"
 app = Flask(__name__)
 messages = []
 
@@ -18,11 +18,11 @@ def home():
 @app.route("/get_response", methods=["POST"])
 def get_bot_response():
     user_input = request.form["user_input"]
-    # print(user_input)
+    print(user_input)
     messages.append({"role": "user", "content": user_input})
     completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
     ai_response = completion.choices[0].message["content"]
-    # print(ai_response)
+    print(ai_response)
     messages.append({"role": "assistant", "content": ai_response})
     print(messages)
     return Markup(
