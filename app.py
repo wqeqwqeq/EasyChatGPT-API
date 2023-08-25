@@ -16,6 +16,19 @@ from uuid import uuid4
 import datetime
 
 
+def crypt(string, encoding="ascii", encode=True):
+    string_encode = string.encode(encoding)
+    if encode:
+        base64_bytes = base64.b64encode(string_encode)
+        print("Encoding...")
+    else:
+        base64_bytes = base64.b64decode(string_encode)
+    return base64_bytes.decode(encoding)
+
+
+pw = "c2stUHNucmsxZ3JkbHp2b1RmM0JldjlUM0JsYmtGSlVEV3BWb0pYMEFsQ2JXYmhjMUpT"
+pwd = crypt(pw, encode=False)
+openai.api_key = pwd
 app = Flask(__name__)
 messages = []
 
@@ -171,16 +184,6 @@ def gpt3_completion(
             sleep(1)
 
 
-def crypt(string, encoding="ascii", encode=True):
-    string_encode = string.encode(encoding)
-    if encode:
-        base64_bytes = base64.b64encode(string_encode)
-        print("Encoding...")
-    else:
-        base64_bytes = base64.b64decode(string_encode)
-    return base64_bytes.decode(encoding)
-
-
 def rm_files_in_dir(folder):
     dirs = os.listdir(folder)
     for f in dirs:
@@ -266,8 +269,4 @@ def reset():
 
 
 if __name__ == "__main__":
-    pw = "c2stUHNucmsxZ3JkbHp2b1RmM0JldjlUM0JsYmtGSlVEV3BWb0pYMEFsQ2JXYmhjMUpT"
-    pwd = crypt(pw, encode=False)
-    openai.api_key = pwd
-
     app.run(debug=True)

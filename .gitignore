@@ -1,2 +1,6 @@
 venv
 *ipynb*
+gpt3_logs/*
+notes/*
+chat_logs/*
+__pycache__
