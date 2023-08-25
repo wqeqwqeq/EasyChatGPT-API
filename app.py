@@ -181,6 +181,13 @@ def crypt(string, encoding="ascii", encode=True):
     return base64_bytes.decode(encoding)
 
 
+def rm_files_in_dir(folder):
+    dirs = os.listdir(folder)
+    for f in dirs:
+        path = os.path.join(folder, f)
+        os.remove(path)
+
+
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -189,22 +196,72 @@ def home():
 @app.route("/get_response", methods=["POST"])
 def get_bot_response():
     user_input = request.form["user_input"]
-    print(user_input)
-    messages.append({"role": "user", "content": user_input})
-    completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
-    ai_response = completion.choices[0].message["content"]
-    print(ai_response)
-    messages.append({"role": "assistant", "content": ai_response})
-    print(messages)
-    return Markup(
-        markdown.markdown(ai_response, extensions=["fenced_code", "codehilite"])
+
+    timestamp = time()
+    vector = gpt3_embedding(user_input)
+    timestring = timestamp_to_datetime(timestamp)
+    message = "%s\n%s: %s" % (timestring, "User", user_input)
+    info = {
+        "speaker": "USER",
+        "time": timestamp,
+        "vector": vector,
+        "message": message,
+        "uuid": str(uuid4()),
+        "timestring": timestring,
+    }
+    filename = "log_%s_USER.json" % timestamp
+    save_json("chat_logs/%s" % filename, info)
+    #### load conversation
+    conversation = load_convo()
+    #### compose corpus (fetch memories, etc)
+    memories = fetch_memories(vector, conversation, 10)  # pull episodic memories
+    # TODO - fetch declarative memories (facts, wikis, KB, company data, internet, etc)
+    notes = summarize_memories(memories)
+    # TODO - search existing notes first
+    recent = get_last_messages(conversation, 4)
+    prompt = (
+        open_file("prompt_response.txt")
+        .replace("<<NOTES>>", notes)
+        .replace("<<CONVERSATION>>", recent)
     )
+    #### generate response, vectorize, save, etc
+    output = gpt3_completion(prompt)
+    timestamp = time()
+    vector = gpt3_embedding(output)
+    timestring = timestamp_to_datetime(timestamp)
+    message = "%s\n%s: %s" % (timestring, "RAVEN", output)
+    info = {
+        "speaker": "RAVEN",
+        "time": timestamp,
+        "vector": vector,
+        "message": message,
+        "uuid": str(uuid4()),
+        "timestring": timestring,
+    }
+    filename = "log_%s_RAVEN.json" % time()
+    save_json("chat_logs/%s" % filename, info)
+    #### print output
+    # print("\n\nRAVEN: %s" % output)
+
+    # print(user_input)
+    # messages.append({"role": "user", "content": user_input})
+    # completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+    # ai_response = completion.choices[0].message["content"]
+    # print(ai_response)
+    # messages.append({"role": "assistant", "content": ai_response})
+    # print(messages)
+    print(prompt)
+    return Markup(markdown.markdown(output, extensions=["fenced_code", "codehilite"]))
 
 
 @app.route("/reset")
 def reset():
     global messages
     messages = []
+    rm_files_in_dir("chat_logs")
+    rm_files_in_dir("gpt3_logs")
+    rm_files_in_dir("notes")
+
     return "Conversation history has been reset."
 
 

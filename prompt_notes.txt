@@ -1,0 +1,10 @@
+Write detailed notes of the following in a hyphenated list format like "- ". 
+If nothing is given, return "no history yet" without hyphen
+
+
+
+<<INPUT>>
+
+
+
+NOTES:
